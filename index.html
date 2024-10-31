@@ -1,0 +1,58 @@
+{% extends 'base.html'%}
+
+{% block head %}
+<title>
+    Lumen LED Control - Color Picker
+</title>
+{% endblock %}
+{% block body %}
+<div class='content'>
+    <h2>Select a Color, State, Brightness for the LED</h2>
+
+    <form method="POST">
+        <!-- Color Picker -->
+        <label for="colorPicker">Choose Color:</label>
+        <input type="color" name="color" id="colorPicker" value="{{ color if color else '#ff0000' }}">
+        <br><br>
+
+        <!-- ON/OFF Switch -->
+        <label for="stateSwitch">LED State:</label>
+        <label class="switch">
+            <input type="checkbox" name="state" id="stateSwitch" {% if state=="ON" %}checked{% endif %}>
+            <span class="slider"></span>
+        </label>
+        <br><br>
+
+        <!-- Brightness Slider -->
+        <label for="brightnessSlider">Brightness:<span id="brightnessValue">{{ brightness }}</span>%</label>
+        <input type="range" id="brightnessSlider" name="brightness" min="0" max="100" value="{{ brightness }}"
+            oninput="updateBrightnessValue(this.value)">
+        <br><br>
+
+        <!-- Mode Selection Switch -->
+        <label for="modeSwitch">Mode:</label>
+        <label class="switch">
+            <input type="checkbox" name="mode" id="modeSwitch" {% if mode=="Automatic" %}checked{% endif %}>
+            <span class="slider"></span>
+        </label>
+        <span>{{ "Automatic" if mode == "Automatic" else "Manual" }}</span>
+        <br><br>
+
+        <input type="submit" value="Set LED">
+    </form>
+
+    {% if color %}
+    <h3>You selected: {{ color }}</h3>
+    <div class="color-box" style="background-color: '{{ color }}';opacity: '{{ brightness / 100 }}';"></div>
+
+    {% endif %}
+</div>
+
+<script>
+    // JavaScript to dynamically update the displayed brightness value
+    function updateBrightnessValue(value) {
+        document.getElementById("brightnessValue").textContent = value;
+    }
+</script>
+
+{% endblock %}
