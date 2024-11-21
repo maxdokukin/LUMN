@@ -1,0 +1,15 @@
+# final project deployment
+
+gcloud config set project esp-led-server
+
+docker buildx build --platform linux/amd64 -t us-west1-docker.pkg.dev/esp-led-server/esp-led-server/esp-led-server:latest .
+
+docker push us-west1-docker.pkg.dev/esp-led-server/esp-led-server/esp-led-server:latest
+
+# to run
+gcloud beta run deploy esp-web-server \
+    --image us-west1-docker.pkg.dev/esp-led-server/esp-led-server/esp-led-server:latest \
+    --region us-west1
+
+# to stop
+gcloud run services update esp-web-server --region us-west1 --no-traffic
