@@ -1,90 +1,54 @@
-from flask import Flask, request, jsonify
-import threading
+from flask import Flask, render_template, request, jsonify
+from flask_scss import Scss
 
 app = Flask(__name__)
+Scss(app)
 
 # In-memory database to store device information and pending commands
 devices = {}
 
-# Endpoint to receive heartbeat and store the device IP
-@app.route('/esp_heartbeat', methods=['POST'])
-def esp_heartbeat():
-    data = request.get_json()
-    device_id = data.get("device_id")
-    device_ip = data.get("ip")
+# Route to serve JSON data
+@app.route('/get_info', methods=['POST'])
+def up_data():
+    data = request.json  # Receive JSON data from the frontend
 
-    if not device_id or not device_ip:
-        return jsonify({"error": "Device ID and IP required"}), 400
+    # Update the devices dictionary with new values
+    devices['r'] = data.get('r', devices.get('r', 255))
+    devices['g'] = data.get('g', devices.get('g', 255))
+    devices['b'] = data.get('b', devices.get('b', 255))
+    devices['brightness'] = data.get('brightness', devices.get('brightness', 100))
+    devices['state'] = 1 if data.get('state', devices.get('state', 0)) == 1 else 0
+    devices['mode'] = 1 if data.get('mode', devices.get('mode', 0)) == 1 else 0
 
-    # Update or register device info with default properties
-    if device_id not in devices:
-        devices[device_id] = {
-            "ip": device_ip,
-            "pending_command": None,
-            "rgb": [255, 255, 255],  # Default white color
-            "brightness": 255,       # Default brightness 100%
-            "mode": 1,        # Default mode
-            "state": 1            # Default state
-        }
-    else:
-        devices[device_id]["ip"] = device_ip
+    return jsonify({"success": True, "message": "Data updated successfully"}), 200
 
-    return jsonify({"status": "Heartbeat received", "device_id": device_id})
+@app.route('/get_data')
+def get_data():
+    return jsonify({
+        "r": devices.get('r', 255),
+        "g": devices.get('g', 255),
+        "b": devices.get('b', 255),
+        "brightness": devices.get('brightness', 100),
+        "state": devices.get('state', 1),  # Serve as 0 or 1
+        "mode": devices.get('mode', 1)    # Serve as 0 or 1
+    })
 
-# Endpoint to poll for commands and device state
-@app.route('/esp_commands', methods=['GET'])
-def esp_commands():
-    device_id = request.args.get("device_id")
+# Route to render the index page and handle form submissions
+@app.route("/", methods=['GET', 'POST'])
+def index():
+    color = '#ff0000'
+    state = "OFF"  # Default
+    brightness = 50
+    mode = "Manual"
 
-    if not device_id or device_id not in devices:
-        return jsonify({"error": "Unknown or missing device ID"}), 400
+    if request.method == "POST":
+        # Get the selected color and switch state from the form
+        color = request.form.get("color")
+        state = "ON" if request.form.get("state") == "on" else "OFF"
+        brightness = int(request.form.get("brightness", 50))
+        mode = "Automatic" if request.form.get("mode") == "on" else "Manual"
+    
+    return render_template("index.html", color=color, state=state, brightness=brightness, mode=mode)
 
-    device = devices[device_id]
-    response = {
-        "command": device.get("pending_command"),
-        "rgb": device["rgb"],
-        "brightness": device["brightness"],
-        "mode": device["mode"],
-        "state": device["state"]
-    }
-
-    # Clear command after sending it to device
-    device["pending_command"] = None
-    return jsonify(response)
-
-# Admin endpoint to set a command or update properties for a specific device
-@app.route('/set_command', methods=['POST'])
-def set_command():
-    data = request.get_json()
-    device_id = data.get("device_id")
-    command = data.get("command")
-    rgb = data.get("rgb")
-    brightness = data.get("brightness")
-    mode = data.get("mode")
-    state = data.get("state")
-
-    if device_id not in devices:
-        return jsonify({"error": "Device not registered"}), 400
-
-    # Update device command and properties
-    if command:
-        devices[device_id]["pending_command"] = command
-    if rgb:
-        devices[device_id]["rgb"] = rgb
-    if brightness is not None:
-        devices[device_id]["brightness"] = brightness
-    if mode:
-        devices[device_id]["mode"] = mode
-    if state:
-        devices[device_id]["state"] = state
-
-    return jsonify({"status": "Command and properties set", "device_id": device_id})
-
-@app.route('/')
-def main():
-    return "Hi"
-
-# Run Flask server
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
-
+if __name__ == "__main__":
+    app.run(debug=True)
