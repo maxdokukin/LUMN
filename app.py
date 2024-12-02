@@ -54,10 +54,8 @@ def index():
 
 @app.route('/qr_code', methods=['GET'])
 def qr_code():
-    # Generate the website URL
-    website_url = request.url_root.strip("/")  # Get the base URL of the site
+    website_url = request.url_root.strip("/")
 
-    # Create a QR code
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -67,13 +65,11 @@ def qr_code():
     qr.add_data(website_url)
     qr.make(fit=True)
 
-    # Save the QR code as an image
     img = qr.make_image(fill_color="black", back_color="white")
     buffer = BytesIO()
     img.save(buffer)
     buffer.seek(0)
 
-    # Return the image as a response
     return send_file(buffer, mimetype='image/png')
 
 if __name__ == "__main__":
