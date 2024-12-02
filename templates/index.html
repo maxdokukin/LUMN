@@ -5,17 +5,17 @@
 {% endblock %}
 
 {% block body %}
-<div class="content">
-    <h2>Select a Color, State, Brightness for the LED</h2>
+<div class='content'>
+    <h2>Smart LED Controller</h2>
 
     <form method="POST" id="ledForm">
         <!-- Color Picker -->
-        <label for="colorPicker">Choose Color:</label>
+        <label for="colorPicker">Color</label>
         <input type="color" name="color" id="colorPicker" value="#ff0000">
         <br><br>
 
         <!-- ON/OFF Switch -->
-        <label for="stateSwitch">LED State:</label>
+        <label for="stateSwitch">State</label>
         <label class="switch">
             <input type="checkbox" name="state" id="stateSwitch" {% if state==1 %}checked{% endif %}>
             <span class="slider"></span>
@@ -24,13 +24,13 @@
         <br><br>
 
         <!-- Brightness Slider -->
-        <label for="brightnessSlider">Brightness:<span id="brightnessValue">40</span>%</label>
+        <label for="brightnessSlider">Brightness: <span id="brightnessValue">100</span>%</label>
         <input type="range" id="brightnessSlider" name="brightness" min="0" max="255" value="120"
             oninput="updateBrightnessValue(this.value)">
         <br><br>
 
         <!-- Mode Selection Switch with Labels for Solid and Fading -->
-        <label for="modeSwitch">Mode:</label>
+        <label for="modeSwitch">Mode</label>
 
         <span class="mode-labels">
             <span id="solidLabel">Solid</span>
@@ -38,7 +38,7 @@
                 <input type="checkbox" name="mode" id="modeSwitch" {% if mode==1 %}checked{% endif %}>
                 <span class="slider"></span>
             </label>
-            <span id="fadingLabel">Fading</span>
+            <span id="fadingLabel">Fade</span>
         </span>
         <br><br>
 
