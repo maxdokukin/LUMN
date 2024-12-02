@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file, url_for
 from flask_scss import Scss
+import qrcode
+from io import BytesIO
 
 app = Flask(__name__)
 Scss(app)
@@ -28,9 +30,9 @@ def get_data():
         "r": devices.get('r', 255),
         "g": devices.get('g', 255),
         "b": devices.get('b', 255),
-        "brightness": devices.get('brightness', 100),
+        "brightness": devices.get('brightness', 255),
         "state": devices.get('state', 1),  # Serve as 0 or 1
-        "mode": devices.get('mode', 1)    # Serve as 0 or 1
+        "mode": devices.get('mode', 0)    # Serve as 0 or 1
     })
 
 # Route to render the index page and handle form submissions
@@ -49,6 +51,30 @@ def index():
         mode = "Automatic" if request.form.get("mode") == "on" else "Manual"
     
     return render_template("index.html", color=color, state=state, brightness=brightness, mode=mode)
+
+@app.route('/qr_code', methods=['GET'])
+def qr_code():
+    # Generate the website URL
+    website_url = request.url_root.strip("/")  # Get the base URL of the site
+
+    # Create a QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(website_url)
+    qr.make(fit=True)
+
+    # Save the QR code as an image
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer)
+    buffer.seek(0)
+
+    # Return the image as a response
+    return send_file(buffer, mimetype='image/png')
 
 if __name__ == "__main__":
     app.run(debug=True)
