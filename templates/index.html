@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block body %}
-<div class='content'>
+<div class="content">
     <h2>Select a Color, State, Brightness for the LED</h2>
 
     <form method="POST" id="ledForm">
@@ -24,27 +24,37 @@
         <br><br>
 
         <!-- Brightness Slider -->
-        <label for="brightnessSlider">Brightness:<span id="brightnessValue">0-255</span>%</label>
-        <input type="range" id="brightnessSlider" name="brightness" min="0" max="255" value="50"
+        <label for="brightnessSlider">Brightness:<span id="brightnessValue">40</span>%</label>
+        <input type="range" id="brightnessSlider" name="brightness" min="0" max="255" value="120"
             oninput="updateBrightnessValue(this.value)">
         <br><br>
 
-        <!-- Mode Selection Switch -->
+        <!-- Mode Selection Switch with Labels for Solid and Fading -->
         <label for="modeSwitch">Mode:</label>
-        <label class="switch">
-            <input type="checkbox" name="mode" id="modeSwitch" {% if mode==1 %}checked{% endif %}>
-            <span class="slider"></span>
-        </label>
-        <span id="modeText">Manual</span>
+
+        <span class="mode-labels">
+            <span id="solidLabel">Solid</span>
+            <label class="switch">
+                <input type="checkbox" name="mode" id="modeSwitch" {% if mode==1 %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+            <span id="fadingLabel">Fading</span>
+        </span>
         <br><br>
 
-        <input type="submit" value="Set LED">
+        <input type="submit" value="Set LED" class="submit-btn">
     </form>
 
     <h3 id="selectedColorText" style="display: none;"></h3>
-    <!-- <div id="colorBox" class="color-box" style="display: none;"></div> -->
 </div>
+
 <script>
+    // Function to update the brightness value dynamically
+    function updateBrightnessValue(value) {
+        const percentageValue = (value / 255) * 100;
+        document.getElementById('brightnessValue').textContent = percentageValue.toFixed(0);
+    }
+
     // Function to update LED data on the server
     async function updateData() {
         const colorPicker = document.getElementById("colorPicker").value;
@@ -64,7 +74,6 @@
             state: stateSwitch ? 1 : 0,
             mode: modeSwitch ? 1 : 0
         };
-
         try {
             // Send data to the server
             const response = await fetch('/get_info', {
@@ -84,7 +93,6 @@
             console.error("Error:", error);
         }
     }
-
 
     // Helper function to convert HEX to RGB
     function hexToRgb(hex) {
